@@ -1,20 +1,8 @@
-load("DataFrame/data.jl")
-load("DataFrame/formula.jl")
-load("Demo/lm.jl")
+load("lib/data.jl")
+load("lib/formula.jl")
+load("demo/lm.jl")
 
 df = csvDataFrame("Demo/toy_example.csv")
-
-with(df, :A)
-df[1, 1]
-df[1, "A"]
-
-with(df, :(A + C))
-
-#with(df, :(mean(A))) # Is broken
-
-:(A ~ C)
-
-#model = Formula(:(A ~ C)) # Was broken
 
 model = Formula(:(A ~ B + C))
 

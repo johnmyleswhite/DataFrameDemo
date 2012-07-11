@@ -4,12 +4,11 @@ type OLSResults
   predictor_names::Vector
   responses::Matrix
   coefficients::Matrix
-  std_errors::Matrix
+  std_errors::Vector
   t_stats::Matrix
   p_values::Matrix
   predictions::Matrix
   residuals::Matrix
-  log_likelihood::Float
   r_squared::Float
 end
 
@@ -20,7 +19,7 @@ function print(results::OLSResults)
   println()
   println("Fitted Model:")
   println()
-  printf(" %16s  %8.s  %8.s  %8.s  %8.s\n", "Term", "Estimate", "Std. Error", "t", "p-Value")
+  printf(" %16.s  %8.s  %8.s  %8.s  %8.s\n", "Term", "Estimate", "Std. Error", "t", "p-Value")
   N = size(results.coefficients, 1)
   for i = 1:N
     printf(" %16.s  ", results.predictor_names[i])
@@ -29,6 +28,8 @@ function print(results::OLSResults)
                   results.t_stats[i, 1],
                   results.p_values[i, 1]}), "  "))
   end
+  println()
+  printf("R-squared: %0.4f", results.r_squared)
   println()
   println()
 end
@@ -40,17 +41,25 @@ function lm(ex::Expr, df::DataFrame)
   mm = model_matrix(mf)
   x = mm.model
   y = mm.response
+  n = size(x, 1)
+  p = size(x, 2)
   coefficients = inv(x' * x) * x' * y
+  predictions = x * coefficients
+  residuals = y - predictions
+  degrees = n - p
+  sigma = sum(residuals.^2) / degrees
+  covariance = sigma * inv(x' * x)
+  t_values = coefficients ./ (diag(covariance) / sqrt(n))
+  r_squared = 1.0 - sigma / var(y)
   OLSResults(call,
              x,
              mm.model_colnames,
              y,
              coefficients,
-             coefficients,
-             coefficients,
-             coefficients,
-             x * coefficients,
-             y - x * coefficients,
-             0.0,
-             0.0)
+             diag(covariance),
+             t_values,
+             t_values,
+             predictions,
+             residuals,
+             r_squared)
 end
