@@ -2,7 +2,7 @@ load("lib/data.jl")
 load("lib/formula.jl")
 load("demo/lm.jl")
 
-df = csvDataFrame("Demo/toy_example.csv")
+df = csvDataFrame("demo/toy_example.csv")
 
 model = Formula(:(A ~ B + C))
 
